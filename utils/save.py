@@ -17,18 +17,21 @@ def save_model(checkpoint_folder, model, name=''):
 
 # ================================================================== #
 # =================== Save surface map ============================= #
-def save_meta_sample(checkpoint_folder, data, model, prefix=''):
+def save_meta_sample(checkpoint_folder, data, model, prefix='', epoch=None):
     folder       = compose_out_folder(checkpoint_folder, ['sample']) # create `sample` folder if does not exists
     model_params = dict(model.named_parameters())
 
-    dump_torch_sample(folder, model_params, data)
+    dump_torch_sample(folder, model_params, data, epoch)
 
 
 # ================================================================== #
 # =================== Write binary data ============================ #
-def dump_torch_sample(folder, model_weights, data):
+def dump_torch_sample(folder, model_weights, data, epoch=None):
 
-    filename = '{}/flat_model.pth'.format(folder)
+    if epoch is not None:
+        filename = '{}/flat_model_epoch_{}.pth'.format(folder, epoch)
+    else:
+        filename = '{}/flat_model.pth'.format(folder)
     sample     = {  'weights'      : model_weights,
                     **data # add data from sample
                     }

@@ -1,15 +1,16 @@
 
 import torch
 
-from pytorch_lightning.core.lightning import LightningModule
+from pytorch_lightning import LightningModule
 from torch.optim import RMSprop
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 
-from datasets import SurfaceMapDataset
-from loss import SSDLoss
+from datasets import SurfaceMapDataset, SurfaceMapDatasetCustomized
+from loss import SSDLoss, MAELoss
 from models import SurfaceMapModel
 from utils import DifferentialMixin
+from utils import save_meta_sample
 
 
 class SurfaceMap(DifferentialMixin, LightningModule):
@@ -20,12 +21,18 @@ class SurfaceMap(DifferentialMixin, LightningModule):
         self.config = config
 
         self.net = SurfaceMapModel() # map
-        self.loss_function = SSDLoss() # loss
 
+        if self.config.loss.type == 'ssd':
+            self.loss_function = SSDLoss()
+        elif self.config.loss.type == 'mae':
+            self.loss_function = MAELoss()
+        else:
+            raise NotImplementedError
 
 
     def train_dataloader(self):
-        self.dataset = SurfaceMapDataset(self.config.dataset)
+        # self.dataset = SurfaceMapDataset(self.config.dataset)
+        self.dataset = SurfaceMapDatasetCustomized(self.config.dataset)
         dataloader   = DataLoader(self.dataset, batch_size=None, shuffle=True,
                                 num_workers=self.config.dataset.num_workers)
 
@@ -62,5 +69,13 @@ class SurfaceMap(DifferentialMixin, LightningModule):
         loss = loss_dist + 0.01 * loss_normals
 
         # add here logging if needed
+        self.log('train_loss', loss)
+        self.log('surf', loss_dist)
+        self.log('normal', loss_normals)
+        
+
+        if self.current_epoch % self.config.eval_step == 0:
+            print(f"Batch: {self.current_epoch} - Loss: {loss}")
+            save_meta_sample(self.config.checkpointing.checkpoint_path, self.dataset.sample, self.net, epoch=self.current_epoch)
 
         return loss

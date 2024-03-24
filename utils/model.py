@@ -1,7 +1,7 @@
 
 import math
 import torch
-import torchmeta
+# import torchmeta
 
 from torch.nn import Conv1d, Conv2d, Linear, Sequential
 from torch.nn import ReLU, Tanh, SELU, ELU, Identity, Softplus, LeakyReLU
@@ -10,8 +10,8 @@ from torch.nn import BatchNorm1d as BatchNorm
 from torch.nn import LayerNorm, LocalResponseNorm
 from torch.nn import InstanceNorm1d as InstanceNorm
 
-from torchmeta.modules import MetaLinear
-from torchmeta.modules import MetaSequential
+# from torchmeta.modules import MetaLinear
+# from torchmeta.modules import MetaSequential
 
 
 

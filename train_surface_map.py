@@ -18,6 +18,7 @@ def main(cfg: DictConfig) -> None:
     copy_config_to_experiment_folder(cfg)
 
     model = SurfaceMap(cfg)
+    print(cfg)
 
     trainer = Trainer(gpus=1, max_epochs=1)
     trainer.fit(model)

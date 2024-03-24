@@ -86,8 +86,49 @@ def generate_sample(obj_file_small, obj_file_large, output_file):
     print('Done')
 
 
-small_file = sys.argv[1]
-large_file = sys.argv[2]
-out_file   = sys.argv[3]
+def generate_sample_customized(obj_file_large, output_file):
+    ## reading data
+    points, uv_grid, faces, normals = read_mesh_from_obj(obj_file_large)
+    print('Read sample large')
 
-generate_sample(small_file, large_file, out_file)
+    mesh    = trimesh.Trimesh(points, faces)
+    normals = mesh.vertex_normals
+
+    grid  = torch.from_numpy(uv_grid)
+    faces = torch.tensor(faces).long()
+    normals = torch.tensor(normals).float()
+    points = torch.from_numpy(points).float()
+
+
+    boundary              = trimesh.grouping.group_rows(mesh.edges_sorted, require_count=1) # edges which appears only once
+    vertices_index        = mesh.edges[boundary]
+    unique_vertices_index = np.unique(vertices_index.reshape(-1))
+    boundary_grid         = grid[unique_vertices_index]
+
+    ## compute normalization constant
+    # normalization to make surface area = unit circle area
+    C = np.sqrt( 1.0 / mesh.area )
+
+
+    sample = {}
+    sample['faces']        = faces                          # faces
+    sample['grid']         = grid                           # GT grid
+    sample['points']       = points                         # GT points
+    sample['normals']      = normals
+    sample['boundary_idx'] = torch.from_numpy(unique_vertices_index).long()
+    sample['boundary']     = boundary_grid
+    sample['C']            = C * np.sqrt(np.pi)
+
+    torch.save(sample, output_file)
+    print('Done')
+
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        print('Usage: python convert_sample.py small.obj large.obj out.pth')
+        sys.exit(1)
+        
+    small_file = sys.argv[1]
+    large_file = sys.argv[2]
+    out_file   = sys.argv[3]
+
+    generate_sample(small_file, large_file, out_file)

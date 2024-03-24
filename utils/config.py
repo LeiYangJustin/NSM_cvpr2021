@@ -21,7 +21,7 @@ def copy_config_to_experiment_folder(config):
 
     folder = config.checkpointing.checkpoint_path
     if not os.path.exists(folder):
-        os.mkdir(folder)
+        os.makedirs(folder)
 
     out_path = os.path.join(folder, 'config.yaml')
     OmegaConf.save(config, out_path, resolve=True)

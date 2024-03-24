@@ -7,3 +7,4 @@ from .parametrization import ConformalParamLoss
 from .parametrization import IsometricParamLoss
 from .sdf import SDFLoss
 from .ssd import SSDLoss
+from .mae import MAELoss

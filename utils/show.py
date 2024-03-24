@@ -5,8 +5,35 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
 
-mpl.rcParams['agg.path.chunksize'] = 10000
+from PIL import Image
 
+mpl.rcParams['agg.path.chunksize'] = 10000
+texture_image = Image.open('asset/checkerboard.png')
+
+def show_textured_mesh(filename, source, out, faces, pp_loss=None):
+    np_uvs   = source.cpu().numpy()
+    np_verts = out.cpu().numpy()
+    np_faces = faces.cpu().numpy()
+
+    mesh = trimesh.Trimesh(
+                    vertices=np_verts,
+                    faces=np_faces,
+                    # vertex_attributes={
+                    #     'texture_u': np_uvs[:,0], # for meshlab
+                    #     'texture_v': np_uvs[:,1], # for meshlab
+                    #     's': np_uvs[:,0], # for blender
+                    #     't': np_uvs[:,1], # for blender
+                    #     },
+                    process=False) # no data reordering
+    
+    mesh.visual = trimesh.visual.TextureVisuals(
+                    uv=np_uvs,
+                    image=texture_image)
+
+    if pp_loss is not None:
+        mesh.vertex_attributes['error'] = pp_loss.cpu().numpy()
+
+    mesh.export(filename)
 
 def show_mesh(filename, source, out, faces, pp_loss=None):
     np_uvs   = source.cpu().numpy()
@@ -43,4 +70,3 @@ def show_mesh_2D(filename, uv_points, triangles, landmarks=None):
     plt.axis('equal')
     plt.savefig(filename)
     plt.close()
-

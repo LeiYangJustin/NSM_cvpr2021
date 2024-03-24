@@ -8,16 +8,18 @@ class SurfaceMapDataset(DatasetMixin):
 
         self.sample_path = config.sample_path
         self.num_points  = config.num_points # num points for each iteration
-        self.num_epochs  = config.num_epochs # num epochs
+        # self.num_epochs  = config.num_epochs # num epochs
         self.sample = self.read_torch_sample(self.sample_path)
 
         pool_size = self.sample['samples_2d'].size(0)
+        if self.num_points is None:
+            self.num_points = pool_size
         self.num_blocks = max(int(pool_size / self.num_points), 1)
         self.blocks = self.split_to_blocks(pool_size, self.num_blocks)
 
 
     def __len__(self):
-        return self.num_epochs
+        return self.num_blocks
 
 
     def __getitem__(self, index):
@@ -38,6 +40,47 @@ class SurfaceMapDataset(DatasetMixin):
                     'source'       : grid,
                     'gt'           : points,
                     'normals'      : normals,
+                    }
+
+        return data_dict
+
+
+class SurfaceMapDatasetCustomized(DatasetMixin):
+
+    def __init__(self, config):
+
+        self.sample_path = config.sample_path
+        self.num_points  = config.num_points # num points for each iteration
+        # self.num_epochs  = config.num_epochs # num epochs
+        self.sample = self.read_torch_sample(self.sample_path)
+
+        for k, v in self.sample.items():
+            print(k, v.shape)
+
+        pool_size = self.sample['points'].size(0)
+        if self.num_points is None:
+            self.num_points = pool_size
+        self.num_blocks = max(int(pool_size / self.num_points), 1)
+        self.blocks = self.split_to_blocks(pool_size, self.num_blocks)
+
+
+    def __len__(self):
+        return self.num_blocks
+
+
+    def __getitem__(self, index):
+
+        points     = self.sample['points'].float()
+        grid       = self.sample['grid'].float()
+        normals    = self.sample['normals'].float()
+
+        # extract a chunk containing random samples
+        idx     = self.blocks[index % self.num_blocks]
+        
+        data_dict = {
+                    'source'       : grid[idx],
+                    'gt'           : points[idx],
+                    'normals'      : normals[idx],
                     }
 
         return data_dict
