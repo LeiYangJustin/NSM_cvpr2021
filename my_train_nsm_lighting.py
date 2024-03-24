@@ -15,9 +15,6 @@ from tqdm import trange
 import sys
 from datasets.mixin import DatasetMixin
 
-
-import torch
-
 class LitProgressBar(ProgressBar):
 
     def __init__(self, max_epochs: int):
@@ -45,14 +42,14 @@ def main(cfg: DictConfig) -> None:
     print(cfg.checkpointing.checkpoint_path)
     
     logger = TensorBoardLogger(cfg.checkpointing.checkpoint_path, name="my_model")
-    lr_logger = LearningRateMonitor(logging_interval='epoch')
-    progress_bar = LitProgressBar(cfg.dataset.num_epochs)
+    lr_logger = LearningRateMonitor(logging_interval='step')
+    # progress_bar = LitProgressBar(cfg.dataset.num_epochs)
 
     trainer = Trainer(
-        max_epochs=cfg.dataset.num_epochs,
+        max_epochs=1,
         default_root_dir=cfg.checkpointing.checkpoint_path,
         logger=logger, 
-        callbacks=[lr_logger, progress_bar],
+        callbacks=[lr_logger],
         )
     trainer.fit(model) # save surface map as sample for inter surface map in this loop
 
@@ -68,20 +65,25 @@ def prepare_data_nsm(input_file, output_file):
 
 
 if __name__ == '__main__':
-
-    folder = 'data/bimba'
     
-
-    input_file = 'slim.obj'
-    output_file = 'slim_oversampled.obj'
-
-    input_file = os.path.join(folder, input_file)
-    output_file = os.path.join(folder, output_file)
-    prepare_data_nsm(input_file, output_file)
-
+    model_name = "bimba_fix4_1_20240201_2005_copy_2"
+    # model_name = "bimba"
+    folder = f'data/{model_name}'
     data_pth = os.path.join(folder, 'sample.pth')
-    generate_sample_customized(output_file, data_pth)
-    print('Data prepared successfully!')
+
+    if not os.path.exists(data_pth):
+        # input_file = 'slim.obj'
+        # input_file = os.path.join(folder, input_file)
+
+        ## this is the sampling code; if you already have the data, you can skip this part
+        ## sampling a large model can be very slow for SLIM
+        output_file = 'model_slim.obj'
+        output_file = os.path.join(folder, output_file)
+        assert os.path.exists(output_file), 'Please run SLIM to get the paramemterization!'
+        
+        # prepare_data_nsm(input_file, output_file)
+        generate_sample_customized(output_file, data_pth)
+        print('Data prepared successfully!')
 
     ## manual set config insteal of hydra
     yml_path = 'experiments/surface_map.yaml'

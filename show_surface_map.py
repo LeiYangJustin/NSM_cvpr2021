@@ -21,7 +21,8 @@ def main() -> None:
 
     torch.set_grad_enabled(False)
 
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
 
     net = SurfaceMapModel()
     net = net.to(device)
@@ -53,14 +54,14 @@ def main() -> None:
     # show_mesh('neural_surface_small.obj', source, out, faces, pp_loss)
     show_textured_mesh(f'{save_dir}/neural_surface_small_{epoch}.obj', source, out, faces, pp_loss)
 
-    # generate mesh at sample vertices
-    source = data['visual_grid'].to(device).float()
-    faces  = data['visual_faces'].long()
+    # # generate mesh at sample vertices
+    # source = data['visual_grid'].to(device).float()
+    # faces  = data['visual_faces'].long()
 
-    out = net(source, weights)
+    # out = net(source, weights)
 
-    # show_mesh('neural_surface_big.obj', source, out, faces)
-    show_textured_mesh(f'{save_dir}/neural_surface_big_{epoch}.obj', source, out, faces)
+    # # show_mesh('neural_surface_big.obj', source, out, faces)
+    # show_textured_mesh(f'{save_dir}/neural_surface_big_{epoch}.obj', source, out, faces)
 
 
 if __name__ == '__main__':

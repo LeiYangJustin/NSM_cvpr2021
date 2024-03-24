@@ -17,7 +17,7 @@ class MAELoss(Module):
     def forward(self, pred, gt):
         B    = gt.size(0)
         # loss = (gt - pred).pow(2).view(B, -1).sum() SSD
-        loss = F.l1_loss(pred, gt, reduction='sum')
+        loss = F.l1_loss(pred, gt, reduction='mean')
 
         return loss
 

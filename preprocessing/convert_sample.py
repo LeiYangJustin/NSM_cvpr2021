@@ -91,7 +91,7 @@ def generate_sample_customized(obj_file_large, output_file):
     points, uv_grid, faces, normals = read_mesh_from_obj(obj_file_large)
     print('Read sample large')
 
-    mesh    = trimesh.Trimesh(points, faces)
+    mesh    = trimesh.Trimesh(points, faces, maintain_order=True, process=False)
     normals = mesh.vertex_normals
 
     grid  = torch.from_numpy(uv_grid)

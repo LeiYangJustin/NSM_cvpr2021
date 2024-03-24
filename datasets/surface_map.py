@@ -51,11 +51,12 @@ class SurfaceMapDatasetCustomized(DatasetMixin):
 
         self.sample_path = config.sample_path
         self.num_points  = config.num_points # num points for each iteration
-        # self.num_epochs  = config.num_epochs # num epochs
+        self.num_epochs  = config.num_epochs # num epochs
         self.sample = self.read_torch_sample(self.sample_path)
 
         for k, v in self.sample.items():
-            print(k, v.shape)
+            if isinstance(v, torch.Tensor):
+                print(k, v.shape)
 
         pool_size = self.sample['points'].size(0)
         if self.num_points is None:
@@ -65,7 +66,7 @@ class SurfaceMapDatasetCustomized(DatasetMixin):
 
 
     def __len__(self):
-        return self.num_blocks
+        return self.num_epochs
 
 
     def __getitem__(self, index):

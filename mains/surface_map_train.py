@@ -2,7 +2,7 @@
 import torch
 
 from pytorch_lightning import LightningModule
-from torch.optim import RMSprop
+from torch.optim import RMSprop, Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 
@@ -39,12 +39,26 @@ class SurfaceMap(DifferentialMixin, LightningModule):
         return dataloader
 
 
+    # def configure_optimizers(self):
+    #     LR        = 1.0e-4
+    #     optimizer = RMSprop(self.net.parameters(), lr=LR, momentum=0.9)
+    #     restart   = int(self.config.dataset.num_epochs)
+    #     scheduler = CosineAnnealingLR(optimizer, T_max=restart)
+    #     return [optimizer], [scheduler]
+    
     def configure_optimizers(self):
-        LR        = 1.0e-4
-        optimizer = RMSprop(self.net.parameters(), lr=LR, momentum=0.9)
+        LR        = 10e-4
+        # optimizer = RMSprop(self.net.parameters(), lr=LR, momentum=0.9)
+        optimizer = Adam(self.net.parameters(), lr=LR, amsgrad=False)
         restart   = int(self.config.dataset.num_epochs)
-        scheduler = CosineAnnealingLR(optimizer, T_max=restart)
-        return [optimizer], [scheduler]
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": CosineAnnealingLR(optimizer, T_max=restart),
+                'interval': 'step',
+                'frequency': 1
+            },
+        }
 
 
 
@@ -66,7 +80,9 @@ class SurfaceMap(DifferentialMixin, LightningModule):
         loss_dist    = self.loss_function(out, gt)
         loss_normals = self.loss_function(pred_normals, normals)
 
-        loss = loss_dist + 0.01 * loss_normals
+        loss = 0.0
+        loss += loss_dist
+        loss += 0.1 * loss_normals
 
         # add here logging if needed
         self.log('train_loss', loss)
@@ -74,8 +90,8 @@ class SurfaceMap(DifferentialMixin, LightningModule):
         self.log('normal', loss_normals)
         
 
-        if self.current_epoch % self.config.eval_step == 0:
-            print(f"Batch: {self.current_epoch} - Loss: {loss}")
-            save_meta_sample(self.config.checkpointing.checkpoint_path, self.dataset.sample, self.net, epoch=self.current_epoch)
+        if batch_idx % self.config.eval_step == 0:
+            print(f"Batch: {batch_idx} - Loss: {loss}")
+            save_meta_sample(self.config.checkpointing.checkpoint_path, self.dataset.sample, self.net, epoch=batch_idx)
 
         return loss
