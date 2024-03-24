@@ -1,5 +1,11 @@
 # Neural Surface Maps
 
+## Some updates
+I adapted this code to use pytorch 2.2.1 and pytorch-lighting 2.2.1. It runs well on RTX4090.
+I basically follow the instructions in the original repo, except that build torch-gpu-svd with CUDA-12.0.
+
+
+## Original ReadMe
 Official implementation of **Neural Surface Maps** - [Luca Morreale](https://luca-morreale.github.io/), [Noam Aigerman](https://noamaig.github.io/), [Vladimir Kim](http://www.vovakim.com/), [Niloy J. Mitra](http://www0.cs.ucl.ac.uk/staff/n.mitra/)
 
 [[Paper]](https://arxiv.org/abs/2103.16942) [[Project Page]](http://geometry.cs.ucl.ac.uk/projects/2021/neuralmaps/)
