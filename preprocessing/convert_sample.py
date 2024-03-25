@@ -4,8 +4,10 @@ import torch
 import numpy as np
 import trimesh
 from tqdm import trange, tqdm
+from PIL import Image
 
 from .read_obj import *
+texture_image = Image.open('asset/checkerboard.png')
 
 def generate_sample(obj_file_small, obj_file_large, output_file):
 
@@ -91,19 +93,22 @@ def generate_sample_customized(obj_file_large, output_file):
     points, uv_grid, faces, normals = read_mesh_from_obj(obj_file_large)
     print('Read sample large')
 
-    mesh    = trimesh.Trimesh(points, faces, maintain_order=True, process=False)
+    mesh    = trimesh.Trimesh(points, faces, process=False, maintain_order=True)
+    mesh.visual = trimesh.visual.TextureVisuals(
+                    uv=uv_grid,
+                    image=texture_image)
     normals = mesh.vertex_normals
+    mesh.export('gt.obj')
 
-    grid  = torch.from_numpy(uv_grid)
-    faces = torch.tensor(faces).long()
+    uv_grid  = torch.from_numpy(uv_grid)
+    faces = torch.tensor(mesh.faces).long()
     normals = torch.tensor(normals).float()
-    points = torch.from_numpy(points).float()
-
+    points = torch.from_numpy(mesh.vertices).float()
 
     boundary              = trimesh.grouping.group_rows(mesh.edges_sorted, require_count=1) # edges which appears only once
     vertices_index        = mesh.edges[boundary]
     unique_vertices_index = np.unique(vertices_index.reshape(-1))
-    boundary_grid         = grid[unique_vertices_index]
+    boundary_grid         = uv_grid[unique_vertices_index]
 
     ## compute normalization constant
     # normalization to make surface area = unit circle area
@@ -112,7 +117,7 @@ def generate_sample_customized(obj_file_large, output_file):
 
     sample = {}
     sample['faces']        = faces                          # faces
-    sample['grid']         = grid                           # GT grid
+    sample['grid']         = uv_grid                        # GT grid
     sample['points']       = points                         # GT points
     sample['normals']      = normals
     sample['boundary_idx'] = torch.from_numpy(unique_vertices_index).long()
@@ -123,12 +128,21 @@ def generate_sample_customized(obj_file_large, output_file):
     print('Done')
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print('Usage: python convert_sample.py small.obj large.obj out.pth')
-        sys.exit(1)
+    # if len(sys.argv) != 4:
+    #     print('Usage: python convert_sample.py small.obj large.obj out.pth')
+    #     sys.exit(1)
         
-    small_file = sys.argv[1]
-    large_file = sys.argv[2]
-    out_file   = sys.argv[3]
+    # small_file = sys.argv[1]
+    # large_file = sys.argv[2]
+    # out_file   = sys.argv[3]
 
-    generate_sample(small_file, large_file, out_file)
+    # generate_sample(small_file, large_file, out_file)
+
+    generate_sample_customized('data/bimba_fix4_1_20240201_2005_copy_2/model_slim.obj', 'data/bimba_fix4_1_20240201_2005_copy_2/sample.pth')
+
+    sample = torch.load('data/bimba_fix4_1_20240201_2005_copy_2/sample.pth')
+    print(sample.keys())
+
+    mesh = trimesh.Trimesh(sample['points'].numpy(), sample['faces'].numpy(), process=False, maintain_order=True)
+    mesh.export('gt1.obj')
+

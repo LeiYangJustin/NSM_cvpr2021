@@ -5,6 +5,7 @@ import shutil
 
 from models import SurfaceMapModel
 from utils import show_mesh, show_textured_mesh
+from torch.nn import functional as F
 
 import argparse
 
@@ -51,8 +52,13 @@ def main() -> None:
     out     = net(source, weights)
     pp_loss = (out - gt).pow(2).sum(-1)
 
+    pp_loss = F.l1_loss(out, gt)
+    print(pp_loss.item())
+
     # show_mesh('neural_surface_small.obj', source, out, faces, pp_loss)
     show_textured_mesh(f'{save_dir}/neural_surface_small_{epoch}.obj', source, out, faces, pp_loss)
+    show_textured_mesh(f'{save_dir}/neural_surface_small_gt.obj', source, gt, faces)
+
 
     # # generate mesh at sample vertices
     # source = data['visual_grid'].to(device).float()

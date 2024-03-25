@@ -14,7 +14,9 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from tqdm import trange
 import sys
 from datasets.mixin import DatasetMixin
-
+import torch
+import trimesh
+from PIL import Image
 class LitProgressBar(ProgressBar):
 
     def __init__(self, max_epochs: int):
@@ -66,24 +68,32 @@ def prepare_data_nsm(input_file, output_file):
 
 if __name__ == '__main__':
     
-    model_name = "bimba_fix4_1_20240201_2005_copy_2"
+    texture_image = Image.open('asset/checkerboard.png')
+    
+    # model_name = "bimba_fix4_1_20240201_2005_copy_2"
     # model_name = "bimba"
+    model_name = "disk"
     folder = f'data/{model_name}'
     data_pth = os.path.join(folder, 'sample.pth')
+    sample = torch.load(data_pth)
+    mesh = trimesh.Trimesh(sample['points'].numpy(), sample['faces'].numpy(), process=False, maintain_order=True)
+    mesh.visual = trimesh.visual.TextureVisuals(
+                    uv=sample['grid'].numpy(),
+                    image=texture_image)
 
-    if not os.path.exists(data_pth):
-        # input_file = 'slim.obj'
-        # input_file = os.path.join(folder, input_file)
+    # if not os.path.exists(data_pth):
+    #     # input_file = 'slim.obj'
+    #     # input_file = os.path.join(folder, input_file)
 
-        ## this is the sampling code; if you already have the data, you can skip this part
-        ## sampling a large model can be very slow for SLIM
-        output_file = 'model_slim.obj'
-        output_file = os.path.join(folder, output_file)
-        assert os.path.exists(output_file), 'Please run SLIM to get the paramemterization!'
+    #     ## this is the sampling code; if you already have the data, you can skip this part
+    #     ## sampling a large model can be very slow for SLIM
+    #     output_file = 'model_slim.obj'
+    #     output_file = os.path.join(folder, output_file)
+    #     assert os.path.exists(output_file), 'Please run SLIM to get the paramemterization!'
         
-        # prepare_data_nsm(input_file, output_file)
-        generate_sample_customized(output_file, data_pth)
-        print('Data prepared successfully!')
+    #     # prepare_data_nsm(input_file, output_file)
+    #     generate_sample_customized(output_file, data_pth)
+    #     print('Data prepared successfully!')
 
     ## manual set config insteal of hydra
     yml_path = 'experiments/surface_map.yaml'
