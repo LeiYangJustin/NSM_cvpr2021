@@ -47,9 +47,17 @@ class SurfaceMap(DifferentialMixin, LightningModule):
     #     return [optimizer], [scheduler]
     
     def configure_optimizers(self):
-        LR        = 1.0e-4
-        optimizer = RMSprop(self.net.parameters(), lr=LR, momentum=0.9)
-        # optimizer = Adam(self.net.parameters(), lr=LR, amsgrad=False)
+        if hasattr(self.config, 'optimizer'):
+            if self.config.optimizer.type == 'adam':
+                print("Using Adam optimizer")
+                optimizer = Adam(self.net.parameters(), lr=self.config.optimizer.lr, amsgrad=False)
+            else:
+                LR        = 1.0e-4
+                optimizer = RMSprop(self.net.parameters(), lr=LR, momentum=0.9)
+        else:
+            LR        = 1.0e-4
+            optimizer = RMSprop(self.net.parameters(), lr=LR, momentum=0.9)
+        
         restart   = int(self.config.dataset.num_epochs)
         return {
             "optimizer": optimizer,
@@ -79,7 +87,7 @@ class SurfaceMap(DifferentialMixin, LightningModule):
         # loss
         loss_dist    = self.loss_function(out, gt)
         loss_normals = self.loss_function(pred_normals, normals)
-
+        
         loss = 0.0
         loss += loss_dist
         loss += 0.01 * loss_normals

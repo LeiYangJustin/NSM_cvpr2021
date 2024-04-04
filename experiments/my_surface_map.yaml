@@ -1,0 +1,22 @@
+checkpointing :
+  checkpoint_path    : './outputs/neural_map_0402/'
+  prefix : 'overfit'
+
+dataset :
+  sample_path : '/SET/YOUR/PATH/HERE/'
+  num_workers : 4
+  num_points  : 50000
+  num_epochs  : 10000
+
+# optimizer :
+#   type : 'adam'
+#   lr   : 1.0e-4
+
+loss :
+  type : 'mae'
+
+eval_step: 1000
+
+hydra:
+  run:
+    dir: './'

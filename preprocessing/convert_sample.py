@@ -138,9 +138,9 @@ if __name__ == '__main__':
 
     # generate_sample(small_file, large_file, out_file)
 
-    generate_sample_customized('data/bimba_fix4_1_20240201_2005_copy_2/model_slim.obj', 'data/bimba_fix4_1_20240201_2005_copy_2/sample.pth')
+    generate_sample_customized('data/bimba_hair/mesh_slim.obj', 'data/bimba_hair/sample.pth')
 
-    sample = torch.load('data/bimba_fix4_1_20240201_2005_copy_2/sample.pth')
+    sample = torch.load('data/bimba_hair/sample.pth')
     print(sample.keys())
 
     mesh = trimesh.Trimesh(sample['points'].numpy(), sample['faces'].numpy(), process=False, maintain_order=True)

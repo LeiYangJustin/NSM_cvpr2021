@@ -2,6 +2,7 @@ import pymeshlab
 import os
 from preprocessing.convert_sample import generate_sample, generate_sample_customized
 import yaml
+import argparse
 
 from omegaconf import DictConfig
 from utils import compose_config_folders
@@ -66,16 +67,29 @@ def prepare_data_nsm(input_file, output_file):
     ms.save_current_mesh(output_file)
 
 
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('--expname', type=str, default='default')
+argparser.add_argument('--model_name', type=str, required=True)
+
+
+
 if __name__ == '__main__':
+    
+    args = argparser.parse_args()
+    model_name = args.model_name
     
     texture_image = Image.open('asset/checkerboard.png')
     
     # model_name = "bimba_fix4_1_20240201_2005_copy_2"
     # model_name = "bimba"
-    model_name = "disk"
+    # model_name = "bimba_hair"
+    # model_name = "disk"
     folder = f'data/{model_name}'
     data_pth = os.path.join(folder, 'sample.pth')
     sample = torch.load(data_pth)
+    print(sample.keys())
+
     mesh = trimesh.Trimesh(sample['points'].numpy(), sample['faces'].numpy(), process=False, maintain_order=True)
     mesh.visual = trimesh.visual.TextureVisuals(
                     uv=sample['grid'].numpy(),
@@ -96,11 +110,12 @@ if __name__ == '__main__':
     #     print('Data prepared successfully!')
 
     ## manual set config insteal of hydra
-    yml_path = 'experiments/surface_map.yaml'
+    yml_path = 'experiments/my_surface_map.yaml'
     with open(yml_path) as f:
         cfg = yaml.safe_load(f)
     cfg = DictConfig(cfg)
     cfg.dataset.sample_path = data_pth
+    cfg.checkpointing.prefix += f'_{args.expname}'
 
     ## run training
     main(cfg)    

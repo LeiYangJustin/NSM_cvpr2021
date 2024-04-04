@@ -50,10 +50,10 @@ def main() -> None:
 
     # generate mesh at GT vertices
     out     = net(source, weights)
-    pp_loss = (out - gt).pow(2).sum(-1)
+    # pp_loss = (out - gt).pow(2).sum(-1)
 
     pp_loss = F.l1_loss(out, gt)
-    print(pp_loss.item())
+    print("pp_loss", pp_loss.item())
 
     # show_mesh('neural_surface_small.obj', source, out, faces, pp_loss)
     show_textured_mesh(f'{save_dir}/neural_surface_small_{epoch}.obj', source, out, faces, pp_loss)
